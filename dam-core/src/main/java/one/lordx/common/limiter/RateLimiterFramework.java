@@ -8,9 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <pre>
@@ -69,7 +67,11 @@ public class RateLimiterFramework {
                 RateLimiter rateLimiter = method.getAnnotation(RateLimiter.class);
                 RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
                 for (String methodPath : methodRequestMapping.value()) {
-                    String key = fullPath(headerPath) + fullPath(methodPath);
+                    String headerFullPath = fullPath(headerPath);
+                    if ("/".equals(headerFullPath)) {
+                        headerFullPath = "";
+                    }
+                    String key = headerFullPath + fullPath(methodPath);
                     RateLimiterHolder holder = new RateLimiterHolder(rateLimiter.permitsPerSecond(), rateLimiter.tryAcquire(), rateLimiter.timeout(), this.responseObject, rateLimiter.responseType());
                     this.limiterMap.put(key, holder);
                 }

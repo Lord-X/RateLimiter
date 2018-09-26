@@ -5,7 +5,54 @@
 > 目前只可用于用Spring MVC设计的接口。<br/>
 > 注意：如果@RequestMapping中配置的Value值包含任意格式的占位符，则不支持此类接口的限流
 
-### Quick Start
+### Quick Start（SpringBoot方式）
+> 通过添加Dam提供的starter集成限流组件，省去配置的麻烦(可参考dam-demo工程)
+
+#### Step1：添加Maven依赖
+    基于springboot 2.0.5.RELEASE版本
+    <dependency>
+        <groupId>one.lordx.common</groupId>
+        <artifactId>spring-boot-starter-dam</artifactId>
+        <version>1.1.0-RELEASE</version>
+    </dependency>
+
+#### Step2：在application.properties中添加需要扫描的controller的包名
+    dam.package.scan=one.lordx.dam.damdemo.web
+
+#### Step3：在需要限流的接口上添加注解，即可使用
+    这种方式下，当限流时，会返回dam定义的ResponseType，即@RateLimiter的第四个参数
+    @RestController
+    @RequestMapping("dam")
+    public class DamController {
+
+        @RequestMapping("/demo")
+        @ResponseBody
+        @RateLimiter(permitsPerSecond = 1.0, tryAcquire = true, timeout = 10, responseType = ResponseType.BAD_REQUEST)
+        public Object demo() {
+            return new ArrayList<>();
+        }
+    }
+
+#### Step4：限流时，接口返回信息的扩展
+    有时，在限流时，前端需要获取服务端定义的一些信息，再针对性的执行相关逻辑。
+    这时就需要用户来自定义限流时 接口返回的信息。
+    需要自定义时，用户需要实现one.lordx.common.limiter.inter.IResponseObject接口。
+    并把实现类配置在application.properties中，限流组件在限流时就会返回用户自定义的数据结构。例如：
+    public class CommonResponse implements IResponseObject<Resp> {
+        @Override
+        public Resp responseObject() {
+            Resp resp = new Resp();
+            resp.setCode(1001);
+            resp.setDesc("HAHAHAHAHAH");
+            return resp;
+        }
+    }
+    配置：
+    dam.custom.response=one.lordx.dam.damdemo.response.CommonResponse
+
+    具体可以参考dam-demo工程，@RateLimiter的说明在文末。
+
+### Quick Start（原生方式）
 #### Step1：添加Maven依赖
     <dependency>
         <groupId>one.lordx.common</groupId>
